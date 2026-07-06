@@ -3,10 +3,10 @@ services:
     image: ghcr.io/kraleod/exercisediary:latest
     restart: unless-stopped
     ports:
-      - 8851:8851
+      - 8852:8852
     volumes:
       - ./data:/data/ExerciseDiary
     environment:
       TZ: Europe/Berlin
-      PORT: "8851"
+      PORT: "8852"
 #      HOST: "0.0.0.0"
