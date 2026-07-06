@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "ExerciseDiary",
+    "slug": "exercise-diary",
+    "version": "1.0.0",
+    "platforms": [
+      "web"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}

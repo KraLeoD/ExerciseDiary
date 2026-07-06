@@ -1,2 +1,6 @@
-# Ignore tmp
+node_modules/
+dist/
+web-build/
+.expo/
+*.db
 tmp/

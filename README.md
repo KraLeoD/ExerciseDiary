@@ -1,88 +1,63 @@
-[![Main-Docker](https://github.com/aceberg/exercisediary/actions/workflows/main-docker.yml/badge.svg)](https://github.com/aceberg/exercisediary/actions/workflows/main-docker.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/aceberg/exercisediary)](https://goreportcard.com/report/github.com/aceberg/exercisediary)
-[![Maintainability](https://api.codeclimate.com/v1/badges/e8f67994120fc7936aeb/maintainability)](https://codeclimate.com/github/aceberg/ExerciseDiary/maintainability)
-![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/aceberg/exercisediary)
+# ExerciseDiary
 
-<h1><a href="https://github.com/aceberg/exercisediary">
-    <img src="https://raw.githubusercontent.com/aceberg/exercisediary/main/assets/logo.png" width="35" />
-</a>Exercise Diary</h1>
+Workout diary with GitHub-style activity heatmap, exercise tracking, and body weight logging.
 
-Workout diary with GitHub-style year visualization
+Built with Expo (React Native Web) + Express + SQLite.
 
-- [Quick start](https://github.com/aceberg/exercisediary#quick-start)
-- [Binary](https://github.com/aceberg/exercisediary#binary)
-- [Config](https://github.com/aceberg/exercisediary#config)
-- [Options](https://github.com/aceberg/exercisediary#options)
-- [Local network only](https://github.com/aceberg/exercisediary#local-network-only)
-- [Roadmap](https://github.com/aceberg/ExerciseDiary/blob/main/docs/ROADMAP.md)
-- [Thanks](https://github.com/aceberg/exercisediary#thanks)
+## Features
 
+- Activity heatmap showing workout frequency
+- Daily workout logging with exercises grouped by muscle group
+- Exercise management (create, edit, delete)
+- Per-exercise statistics with weight and reps charts
+- Body weight tracking with trend chart
+- Material Design 3 UI
 
-![Screenshot](https://raw.githubusercontent.com/aceberg/ExerciseDiary/main/assets/Screenshot.png)
+## Running with Docker
 
-## Quick start
-
-```sh
-docker run --name exdiary \
--e "TZ=Asia/Novosibirsk" \
--v ~/.dockerdata/ExerciseDiary:/data/ExerciseDiary \
--p 8851:8851 \
-aceberg/exercisediary
+```bash
+docker compose up -d
 ```
-Or use [docker-compose.yml](docker-compose.yml)
 
-## Binary
-PPA for amd64 .deb is [here](https://github.com/aceberg/ppa). For other binary options plese look at the [latest release](https://github.com/aceberg/ExerciseDiary/releases/latest).
+The app will be available at `http://localhost:8851`.
 
+Data is stored in `~/.dockerdata/ExerciseDiary/sqlite.db`.
 
-## Config
+## Development
 
+### Backend
 
-Configuration can be done through config file, GUI or environment variables. Variable names is `config.yaml` file are the same, but in lowcase.
-
-| Variable  | Description | Default |
-| --------  | ----------- | ------- |
-| AUTH | Enable Session-Cookie authentication | false |
-| AUTH_EXPIRE | Session expiration time. A number and suffix: **m, h, d** or **M**. | 7d |
-| AUTH_USER | Username | "" |
-| AUTH_PASSWORD | Encrypted password (bcrypt). [How to encrypt password with bcrypt?](docs/BCRYPT.md) | "" |
-| HOST | Listen address | 0.0.0.0 |
-| PORT   | Port for web GUI | 8851 |
-| THEME | Any theme name from https://bootswatch.com in lowcase or [additional](https://github.com/aceberg/aceberg-bootswatch-fork) (emerald, grass, grayscale, ocean, sand, wood)| grass |
-| COLOR | Background color: light or dark | light |
-| HEATCOLOR | HeatMap color | #03a70c |
-| PAGESTEP | Items on one page | 10 |
-| TZ | Set your timezone for correct time | "" |
-
-## Options
-
-| Key  | Description | Default | 
-| --------  | ----------- | ------- | 
-| -d | Path to config dir | /data/ExerciseDiary | 
-| -n | Path to local JS and Themes ([node-bootstrap](https://github.com/aceberg/my-dockerfiles/tree/main/node-bootstrap)) | "" | 
-
-## Local network only
-By default, this app pulls themes, icons and fonts from the internet. But, in some cases, it may be useful to have an independent from global network setup. I created a separate [image](https://github.com/aceberg/my-dockerfiles/tree/main/node-bootstrap) with all necessary modules and fonts.    
-```sh
-docker run --name node-bootstrap       \
-    -v ~/.dockerdata/icons:/app/icons  \ # For local images
-    -p 8850:8850                       \
-    aceberg/node-bootstrap
+```bash
+cd backend
+npm install
+DB_DIR=./data npm run dev
 ```
-```sh
-docker run --name exdiary \
-    -v ~/.dockerdata/ExerciseDiary:/data/ExerciseDiary \
-    -p 8851:8851 \
-    aceberg/exercisediary -n "http://$YOUR_IP:8850"
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npx expo start --web
 ```
-Or use [docker-compose](docker-compose-local.yml)
 
-## Roadmap
-Moved to [docs/ROADMAP.md](docs/ROADMAP.md)
+### Building for production
 
-## Thanks
-- All go packages listed in [dependencies](https://github.com/aceberg/exercisediary/network/dependencies)
-- [Bootstrap](https://getbootstrap.com/)
-- Themes: [Free themes for Bootstrap](https://bootswatch.com)
-- [Chart.js](https://github.com/chartjs/Chart.js) and [chartjs-chart-matrix](https://github.com/kurkle/chartjs-chart-matrix)
-- Favicon and logo: [Flaticon](https://www.flaticon.com/icons/)
+```bash
+cd frontend
+npx expo export --platform web
+cd ../backend
+npm start
+```
+
+## Database
+
+Uses SQLite with three tables: `exercises`, `sets`, `weight`. The database file is fully compatible with the original Go version — you can import your existing `sqlite.db` without modification.
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `8851` | Server port |
+| `HOST` | `0.0.0.0` | Server host |
+| `DB_DIR` | `/data/ExerciseDiary` | Directory for sqlite.db |

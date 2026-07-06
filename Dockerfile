@@ -1,15 +1,24 @@
-FROM golang:alpine AS builder
+FROM node:20-alpine AS frontend-build
 
-RUN apk add build-base
-COPY . /src
-RUN cd /src/cmd/ExerciseDiary/ && CGO_ENABLED=0 go build -o /ExerciseDiary .
+WORKDIR /app/frontend
+COPY frontend/package.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npx expo export --platform web
 
+FROM node:20-alpine
 
-FROM scratch
-
-WORKDIR /data/ExerciseDiary
 WORKDIR /app
+COPY backend/package.json ./backend/
+RUN cd backend && npm install --omit=dev
 
-COPY --from=builder /ExerciseDiary /app/
+COPY backend/ ./backend/
+COPY --from=frontend-build /app/frontend/dist ./frontend/dist/
 
-ENTRYPOINT ["./ExerciseDiary"]
+ENV PORT=8851
+ENV HOST=0.0.0.0
+ENV DB_DIR=/data/ExerciseDiary
+
+EXPOSE 8851
+
+CMD ["node", "backend/src/index.js"]
