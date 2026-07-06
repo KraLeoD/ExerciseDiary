@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
-import { Appbar, Card, Text, useTheme, Menu, Button, DataTable } from 'react-native-paper';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { Appbar, Card, Text, useTheme, Button, DataTable, Dialog, Portal } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api/client';
 import SimpleChart from '../components/SimpleChart';
@@ -46,30 +46,39 @@ export default function StatsScreen() {
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={() => setMenuVisible(true)}
-              icon="chevron-down"
-              contentStyle={{ flexDirection: 'row-reverse' }}
-              style={styles.selector}
-            >
-              {selected || 'Select Exercise'}
-            </Button>
-          }
-          contentStyle={{ maxHeight: 400 }}
+        <Button
+          mode="outlined"
+          onPress={() => setMenuVisible(true)}
+          icon="chevron-down"
+          contentStyle={{ flexDirection: 'row-reverse' }}
+          style={styles.selector}
         >
-          {exercises.map((ex) => (
-            <Menu.Item
-              key={ex.ID}
-              title={ex.NAME}
-              onPress={() => { setSelected(ex.NAME); setMenuVisible(false); setPage(0); }}
-            />
-          ))}
-        </Menu>
+          {selected || 'Select Exercise'}
+        </Button>
+
+        <Portal>
+          <Dialog visible={menuVisible} onDismiss={() => setMenuVisible(false)} style={styles.dialog}>
+            <Dialog.Title>Select Exercise</Dialog.Title>
+            <Dialog.ScrollArea style={{ maxHeight: 400 }}>
+              <ScrollView>
+                {exercises.map((ex) => (
+                  <Button
+                    key={ex.ID}
+                    mode="text"
+                    compact
+                    onPress={() => { setSelected(ex.NAME); setMenuVisible(false); setPage(0); }}
+                    style={styles.dialogItem}
+                  >
+                    {ex.NAME}
+                  </Button>
+                ))}
+              </ScrollView>
+            </Dialog.ScrollArea>
+            <Dialog.Actions>
+              <Button onPress={() => setMenuVisible(false)}>Cancel</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
 
         {chartData.length > 0 && (
           <>
@@ -139,6 +148,8 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 12, paddingBottom: 24 },
-  selector: { marginBottom: 12 },
+  selector: { marginBottom: 12, alignSelf: 'flex-start' },
+  dialog: { maxWidth: 500, alignSelf: 'center', width: '90%' },
+  dialogItem: { alignItems: 'flex-start' },
   card: { marginBottom: 12, borderRadius: 16 },
 });

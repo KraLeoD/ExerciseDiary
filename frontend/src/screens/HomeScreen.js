@@ -8,12 +8,20 @@ import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api/client';
 import Heatmap from '../components/Heatmap';
 
+function formatLocalDate(d) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function HomeScreen({ navigation }) {
   const theme = useTheme();
   const [exercises, setExercises] = useState([]);
   const [sets, setSets] = useState([]);
   const [groups, setGroups] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(formatLocalDate(new Date()));
 
   useFocusEffect(
     useCallback(() => {
@@ -45,8 +53,7 @@ export default function HomeScreen({ navigation }) {
     }
   }
 
-  const today = new Date().toISOString().split('T')[0];
-  const todaySets = sets.filter((s) => s.DATE === today);
+  const todaySets = sets.filter((s) => s.DATE === selectedDate);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -59,14 +66,20 @@ export default function HomeScreen({ navigation }) {
         <Card style={styles.card} mode="elevated">
           <Card.Content>
             <Text variant="titleMedium" style={styles.sectionTitle}>Activity</Text>
-            <Heatmap sets={sets} onDayPress={(date) => navigation.navigate('Workout', { date })} />
+            <Heatmap
+              sets={sets}
+              selectedDate={selectedDate}
+              onDayPress={(date) => setSelectedDate(date)}
+            />
           </Card.Content>
         </Card>
 
         {todaySets.length > 0 && (
           <Card style={styles.card} mode="elevated">
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>Today</Text>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                {selectedDate === formatLocalDate(new Date()) ? 'Today' : selectedDate}
+              </Text>
               {todaySets.map((s, i) => (
                 <Surface key={i} style={styles.setChip} elevation={1}>
                   <Text variant="bodyMedium">{s.NAME}</Text>
@@ -153,6 +166,28 @@ export default function HomeScreen({ navigation }) {
 
               <Button
                 mode="contained"
+                icon="plus"
+                onPress={async () => {
+                  const ex = selectedExercise;
+                  setSelectedExercise(null);
+                  try {
+                    const existing = await api.getSets(selectedDate);
+                    const payload = [
+                      ...existing.map((s) => ({ NAME: s.NAME, COLOR: s.COLOR || '', WEIGHT: String(s.WEIGHT), REPS: parseInt(s.REPS, 10) || 0 })),
+                      { NAME: ex.NAME, COLOR: '', WEIGHT: String(ex.WEIGHT), REPS: parseInt(ex.REPS, 10) || 0 },
+                    ];
+                    await api.saveDaySets(selectedDate, payload);
+                    loadData();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                style={styles.addButton}
+              >
+                Add to {selectedDate}
+              </Button>
+              <Button
+                mode="outlined"
                 icon="pencil"
                 onPress={() => {
                   const id = selectedExercise.ID;
@@ -226,6 +261,10 @@ const styles = StyleSheet.create({
   defaultItem: {
     flex: 1,
     alignItems: 'center',
+  },
+  addButton: {
+    borderRadius: 28,
+    marginBottom: 10,
   },
   editButton: {
     borderRadius: 28,

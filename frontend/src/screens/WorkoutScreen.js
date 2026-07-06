@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import {
-  Appbar, Card, Text, TextInput, Button, IconButton, Chip, useTheme,
-  Menu, Dialog, Portal,
+  Appbar, Card, Text, TextInput, Button, IconButton, useTheme,
+  Dialog, Portal,
 } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api/client';
 
 function formatDate(d) {
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function parseDate(s) {
@@ -159,36 +162,61 @@ export default function WorkoutScreen({ route }) {
         ))}
 
         <View style={styles.addRow}>
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            anchor={
-              <Button mode="outlined" icon="plus" onPress={() => setMenuVisible(true)}>
-                Add Exercise
-              </Button>
-            }
-            contentStyle={{ maxHeight: 400 }}
-          >
-            {groups.map((group) => (
-              <React.Fragment key={group}>
-                <Menu.Item
-                  title={`▸ All: ${group}`}
-                  onPress={() => addGroup(group)}
-                  titleStyle={{ fontWeight: '600', color: theme.colors.primary }}
-                />
-                {exercises
-                  .filter((e) => e.GR === group)
-                  .map((ex) => (
-                    <Menu.Item key={ex.ID} title={`   ${ex.NAME}`} onPress={() => addExercise(ex)} />
-                  ))}
-              </React.Fragment>
-            ))}
-            {exercises.filter((e) => !e.GR).map((ex) => (
-              <Menu.Item key={ex.ID} title={ex.NAME} onPress={() => addExercise(ex)} />
-            ))}
-          </Menu>
+          <Button mode="outlined" icon="plus" onPress={() => setMenuVisible(true)}>
+            Add Exercise
+          </Button>
         </View>
       </ScrollView>
+
+      <Portal>
+        <Dialog visible={menuVisible} onDismiss={() => setMenuVisible(false)} style={styles.dialog}>
+          <Dialog.Title>Add Exercise</Dialog.Title>
+          <Dialog.ScrollArea style={{ maxHeight: 400 }}>
+            <ScrollView>
+              {groups.map((group) => (
+                <React.Fragment key={group}>
+                  <Button
+                    mode="text"
+                    compact
+                    onPress={() => addGroup(group)}
+                    labelStyle={{ fontWeight: '600', color: theme.colors.primary }}
+                    style={styles.dialogItem}
+                  >
+                    {'▸ All: ' + group}
+                  </Button>
+                  {exercises
+                    .filter((e) => e.GR === group)
+                    .map((ex) => (
+                      <Button
+                        key={ex.ID}
+                        mode="text"
+                        compact
+                        onPress={() => addExercise(ex)}
+                        style={styles.dialogItem}
+                      >
+                        {'   ' + ex.NAME}
+                      </Button>
+                    ))}
+                </React.Fragment>
+              ))}
+              {exercises.filter((e) => !e.GR).map((ex) => (
+                <Button
+                  key={ex.ID}
+                  mode="text"
+                  compact
+                  onPress={() => addExercise(ex)}
+                  style={styles.dialogItem}
+                >
+                  {ex.NAME}
+                </Button>
+              ))}
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={() => setMenuVisible(false)}>Cancel</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       {dirty && (
         <Button
@@ -213,6 +241,8 @@ const styles = StyleSheet.create({
   setInputs: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   input: { flex: 1 },
   addRow: { marginTop: 12, alignItems: 'flex-start' },
+  dialog: { maxWidth: 500, alignSelf: 'center', width: '90%' },
+  dialogItem: { alignItems: 'flex-start' },
   saveButton: {
     position: 'absolute',
     bottom: 16,

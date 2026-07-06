@@ -1,6 +1,13 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, useTheme, TouchableRipple } from 'react-native-paper';
+
+function localDateStr(d) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function getWeeksData(sets) {
   const counts = {};
@@ -21,7 +28,7 @@ function getWeeksData(sets) {
   while (currentDate <= today) {
     const week = [];
     for (let d = 0; d < 7; d++) {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = localDateStr(currentDate);
       week.push({
         date: dateStr,
         count: counts[dateStr] || 0,
@@ -35,16 +42,16 @@ function getWeeksData(sets) {
   return weeks;
 }
 
-function getColor(count, maxCount, primaryColor) {
-  if (count === 0) return '#e0e0e0';
+function getColor(count, maxCount) {
+  if (count === 0) return '#ebedf0';
   const intensity = Math.min(count / Math.max(maxCount, 1), 1);
-  if (intensity <= 0.25) return '#c5cae9';
-  if (intensity <= 0.5) return '#7986cb';
-  if (intensity <= 0.75) return '#3f51b5';
-  return '#1a237e';
+  if (intensity <= 0.25) return '#9be9a8';
+  if (intensity <= 0.5) return '#40c463';
+  if (intensity <= 0.75) return '#30a14e';
+  return '#216e39';
 }
 
-export default function Heatmap({ sets, onDayPress }) {
+export default function Heatmap({ sets, onDayPress, selectedDate }) {
   const theme = useTheme();
   const weeks = getWeeksData(sets);
   const maxCount = Math.max(...sets.reduce((acc, s) => {
@@ -57,40 +64,49 @@ export default function Heatmap({ sets, onDayPress }) {
   }, []).map((x) => x.count), 1);
 
   const CELL_SIZE = 10;
-  const GAP = 2;
 
   return (
     <View style={styles.container}>
-      <View style={styles.grid}>
-        {weeks.map((week, wi) => (
-          <View key={wi} style={styles.week}>
-            {week.map((day, di) => (
-              <TouchableRipple
-                key={day.date}
-                onPress={() => !day.future && onDayPress && onDayPress(day.date)}
-                style={[
-                  styles.cell,
-                  {
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
-                    backgroundColor: day.future ? 'transparent' : getColor(day.count, maxCount),
-                    borderRadius: 2,
-                  },
-                ]}
-              >
-                <View />
-              </TouchableRipple>
-            ))}
-          </View>
-        ))}
-      </View>
+      {selectedDate && (
+        <Text variant="labelSmall" style={[styles.selectedLabel, { color: theme.colors.primary }]}>
+          {selectedDate}
+        </Text>
+      )}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.grid}>
+          {weeks.map((week, wi) => (
+            <View key={wi} style={styles.week}>
+              {week.map((day) => (
+                <TouchableRipple
+                  key={day.date}
+                  onPress={() => !day.future && onDayPress && onDayPress(day.date)}
+                  style={[
+                    styles.cell,
+                    {
+                      width: CELL_SIZE,
+                      height: CELL_SIZE,
+                      backgroundColor: day.future ? 'transparent' : getColor(day.count, maxCount),
+                      borderRadius: 2,
+                      borderWidth: day.date === selectedDate ? 2 : 0,
+                      borderColor: day.date === selectedDate ? theme.colors.primary : 'transparent',
+                    },
+                  ]}
+                >
+                  <View />
+                </TouchableRipple>
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { overflow: 'hidden' },
-  grid: { flexDirection: 'row', gap: 2, flexWrap: 'nowrap', overflow: 'scroll' },
+  container: {},
+  selectedLabel: { marginBottom: 6, fontWeight: '600' },
+  grid: { flexDirection: 'row', gap: 2, flexWrap: 'nowrap' },
   week: { flexDirection: 'column', gap: 2 },
   cell: {},
 });
