@@ -9,4 +9,4 @@ services:
     environment:
       TZ: Europe/Berlin
       PORT: "8851"
-      HOST: "0.0.0.0"
+#      HOST: "0.0.0.0"
