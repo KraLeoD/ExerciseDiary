@@ -74,23 +74,27 @@ export default function HomeScreen({ navigation }) {
           </Card.Content>
         </Card>
 
-        {todaySets.length > 0 && (
-          <Card style={styles.card} mode="elevated">
-            <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                {selectedDate === formatLocalDate(new Date()) ? 'Today' : selectedDate}
-              </Text>
-              {todaySets.map((s, i) => (
+        <Card style={styles.card} mode="elevated">
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              {selectedDate === formatLocalDate(new Date()) ? 'Today' : selectedDate}
+            </Text>
+            {todaySets.length > 0 ? (
+              todaySets.map((s, i) => (
                 <Surface key={i} style={styles.setChip} elevation={1}>
                   <Text variant="bodyMedium">{s.NAME}</Text>
                   <Text variant="bodySmall" style={{ color: theme.colors.secondary }}>
                     {s.WEIGHT}kg × {s.REPS}
                   </Text>
                 </Surface>
-              ))}
-            </Card.Content>
-          </Card>
-        )}
+              ))
+            ) : (
+              <Text variant="bodyMedium" style={{ color: theme.colors.secondary }}>
+                No exercises logged for this day
+              </Text>
+            )}
+          </Card.Content>
+        </Card>
 
         <Text variant="titleMedium" style={[styles.sectionTitle, { paddingHorizontal: 16 }]}>
           Exercises

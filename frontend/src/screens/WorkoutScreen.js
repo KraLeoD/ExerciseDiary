@@ -30,7 +30,8 @@ export default function WorkoutScreen({ route }) {
   useFocusEffect(
     useCallback(() => {
       loadExercises();
-    }, [])
+      loadSets();
+    }, [date])
   );
 
   useEffect(() => {
