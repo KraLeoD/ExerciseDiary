@@ -17,8 +17,9 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. We removed the QEMU step because we are no longer emulating.
-    # 3. We keep Buildx as it's just a great, modern builder.
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -37,5 +38,5 @@ jobs:
       with:
         context: .
         push: true
+        platforms: linux/amd64,linux/arm64
         tags: ghcr.io/${{ env.REPO_LC }}:latest
-        # 4. We don't need the 'platforms' flag anymore since the machine builds for its own native architecture.
